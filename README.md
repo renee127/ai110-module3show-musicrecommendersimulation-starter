@@ -17,7 +17,10 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world platforms like Spotify and YouTube rely on a mix of collaborative filtering, which leverages the listening habits of similar users, and content-based filtering, which analyzes actual track attributes. These systems ingest massive amounts of interaction data—such as likes, skips, and playlist additions—to predict what a user will enjoy next. Because this project does not have interaction data for millions of users, this simulation will prioritize a purely content-based approach. It will calculate a recommendation score by measuring the mathematical distance between a user's explicit taste profile and a song's specific audio features.
+
+UserProfile: favorite_genre, favorite_mood, and target_energy.
+Song: genre, mood, and energy (measured on a 0.0 to 1.0 scale).
 
 Some prompts to answer:
 
