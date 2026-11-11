@@ -17,20 +17,38 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Real-world platforms like Spotify and YouTube rely on a mix of collaborative filtering, which leverages the listening habits of similar users, and content-based filtering, which analyzes actual track attributes. These systems ingest massive amounts of interaction data—such as likes, skips, and playlist additions—to predict what a user will enjoy next. Because this project does not have interaction data for millions of users, this simulation will prioritize a purely content-based approach. It will calculate a recommendation score by measuring the mathematical distance between a user's explicit taste profile and a song's specific audio features.
+This project uses content-based filtering: it compares each song's catalog
+features with the user's stated preferences. The user profile contains
+`favorite_genre`, `favorite_mood`, and `target_energy`; each song provides
+`genre`, `mood`, and `energy` (on a 0.0–1.0 scale).
 
-UserProfile: favorite_genre, favorite_mood, and target_energy.
-Song: genre, mood, and energy (measured on a 0.0 to 1.0 scale).
+The recommendation plan is:
 
-Some prompts to answer:
+1. Load the song catalog from `data/songs.csv` and read the user's profile.
+2. Score every song independently. Add 2 points for an exact genre match and
+   1 point for an exact mood match. Add up to 1 energy point using
+   `max(0, 1 - abs(song energy - target energy))`.
+3. Add the points for a total score from 0 to 4, keeping the feature
+   contributions as an explanation.
+4. Sort songs by score, highest first, and return the first `k` recommendations.
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+Genre and mood matches are exact and case-insensitive; related labels do not
+currently receive partial credit. The system uses only these three features,
+so its results depend on the catalog labels and energy values.
 
-You can include a simple diagram or bullet list if helpful.
+**Potential bias:** Genre can contribute twice as much as mood or a perfect
+energy match, so the ranking may favor a genre match over a song that better
+matches the user's mood or energy. Exact label matching can also miss related
+genres and moods, and the small catalog may underrepresent many musical styles.
+
+```mermaid
+flowchart LR
+    A[User preferences<br/>favorite genre, mood, target energy] --> C
+    B[CSV song catalog] --> C[Score each song]
+    C --> D[Collect song and score]
+    D --> E[Sort by score, highest first]
+    E --> F[Return top K recommendations]
+```
 
 ---
 
@@ -120,6 +138,3 @@ Write 1 to 2 paragraphs here about what you learned:
 
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
-
-
-

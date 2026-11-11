@@ -1,4 +1,79 @@
-from src.recommender import Song, UserProfile, Recommender
+from src.recommender import (
+    Recommender,
+    Song,
+    UserProfile,
+    recommend_songs,
+    score_song,
+)
+
+
+def test_score_song_uses_genre_mood_and_energy_weights():
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.8,
+    }
+    genre_only = {
+        "genre": "pop",
+        "mood": "intense",
+        "energy": 0.8,
+    }
+    mood_only = {
+        "genre": "rock",
+        "mood": "happy",
+        "energy": 0.8,
+    }
+
+    genre_score, _ = score_song(profile, genre_only)
+    mood_score, _ = score_song(profile, mood_only)
+    both_score, reasons = score_song(
+        profile,
+        {"genre": "pop", "mood": "happy", "energy": 0.8},
+    )
+
+    assert genre_score == 3.0
+    assert mood_score == 2.0
+    assert both_score == 4.0
+    assert any("Genre matches" in reason for reason in reasons)
+    assert any("Mood matches" in reason for reason in reasons)
+
+
+def test_recommend_songs_ranks_using_genre_and_mood_scores():
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.8,
+    }
+    songs = [
+        {"title": "Mood match", "genre": "rock", "mood": "happy", "energy": 0.8},
+        {"title": "Both match", "genre": "pop", "mood": "happy", "energy": 0.8},
+    ]
+
+    recommendations = recommend_songs(profile, songs, k=1)
+
+    assert len(recommendations) == 1
+    assert recommendations[0][0]["title"] == "Both match"
+    assert recommendations[0][1] == 4.0
+
+
+def test_energy_similarity_decreases_with_distance_from_target():
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.8,
+    }
+
+    exact_energy_score, _ = score_song(
+        profile,
+        {"genre": "other", "mood": "other", "energy": 0.8},
+    )
+    distant_energy_score, _ = score_song(
+        profile,
+        {"genre": "other", "mood": "other", "energy": 0.4},
+    )
+
+    assert exact_energy_score == 1.0
+    assert distant_energy_score == 0.6
 
 def make_small_recommender() -> Recommender:
     songs = [

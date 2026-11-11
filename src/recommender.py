@@ -1,3 +1,4 @@
+import csv
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 
@@ -50,24 +51,56 @@ def load_songs(csv_path: str) -> List[Dict]:
     Loads songs from a CSV file.
     Required by src/main.py
     """
-    # TODO: Implement CSV loading logic
-    print(f"Loading songs from {csv_path}...")
-    return []
+    with open(csv_path, newline="", encoding="utf-8") as csv_file:
+        songs = []
+        for row in csv.DictReader(csv_file):
+            row["id"] = int(row["id"])
+            row["tempo_bpm"] = float(row["tempo_bpm"])
+            for feature in ("energy", "valence", "danceability", "acousticness"):
+                row[feature] = float(row[feature])
+            songs.append(row)
+    return songs
 
 def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     """
     Scores a single song against user preferences.
     Required by recommend_songs() and src/main.py
     """
-    # TODO: Implement scoring logic using your Algorithm Recipe from Phase 2.
-    # Expected return format: (score, reasons)
-    return []
+    genre_match = (
+        song["genre"].casefold() == user_prefs["favorite_genre"].casefold()
+    )
+    mood_match = song["mood"].casefold() == user_prefs["favorite_mood"].casefold()
+    energy_similarity = max(
+        0.0, 1.0 - abs(song["energy"] - user_prefs["target_energy"])
+    )
+
+    genre_points = 2.0 if genre_match else 0.0
+    mood_points = 1.0 if mood_match else 0.0
+    energy_points = energy_similarity
+    reasons = [
+        f"Genre {'matches' if genre_match else 'does not match'} "
+        f"{user_prefs['favorite_genre']} (+{genre_points:.1f}/2)",
+        f"Mood {'matches' if mood_match else 'does not match'} "
+        f"{user_prefs['favorite_mood']} (+{mood_points:.1f}/1)",
+        f"Energy is {abs(song['energy'] - user_prefs['target_energy']):.2f} "
+        f"from your target (+{energy_points:.2f}/1)",
+    ]
+    return genre_points + mood_points + energy_points, reasons
 
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
     """
     Functional implementation of the recommendation logic.
     Required by src/main.py
     """
-    # TODO: Implement scoring and ranking logic
-    # Expected return format: (song_dict, score, explanation)
-    return []
+    if k < 0:
+        raise ValueError("k must be non-negative")
+
+    scored_songs = []
+    for song in songs:
+        score, reasons = score_song(user_prefs, song)
+        scored_songs.append((song, score, "; ".join(reasons)))
+    return sorted(
+        scored_songs,
+        key=lambda recommendation: recommendation[1],
+        reverse=True,
+    )[:k]
