@@ -2,9 +2,27 @@ from src.recommender import (
     Recommender,
     Song,
     UserProfile,
+    load_songs,
     recommend_songs,
     score_song,
 )
+
+
+def test_load_songs_converts_csv_values_to_numbers(tmp_path):
+    csv_path = tmp_path / "songs.csv"
+    csv_path.write_text(
+        "id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness\n"
+        "1,Test Song,Test Artist,pop,happy,0.8,120,0.9,0.7,0.2\n",
+        encoding="utf-8",
+    )
+
+    songs = load_songs(str(csv_path))
+
+    assert len(songs) == 1
+    assert songs[0]["id"] == 1
+    assert isinstance(songs[0]["tempo_bpm"], float)
+    for feature in ("energy", "valence", "danceability", "acousticness"):
+        assert isinstance(songs[0][feature], float)
 
 
 def test_score_song_uses_genre_mood_and_energy_weights():
