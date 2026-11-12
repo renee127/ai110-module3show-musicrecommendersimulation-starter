@@ -19,6 +19,11 @@ class Song:
     valence: float
     danceability: float
     acousticness: float
+    popularity: int = 50
+    release_decade: int = 2020
+    mood_tags: str = ""
+    language: str = "English"
+    instrumentalness: float = 0.5
 
 @dataclass
 class UserProfile:
@@ -30,6 +35,11 @@ class UserProfile:
     favorite_mood: str
     target_energy: float
     likes_acoustic: bool
+    target_popularity: Optional[float] = None
+    preferred_release_decade: Optional[int] = None
+    preferred_mood_tags: Optional[List[str]] = None
+    preferred_language: Optional[str] = None
+    target_instrumentalness: Optional[float] = None
 
 class Recommender:
     """
@@ -73,6 +83,9 @@ def load_songs(csv_path: str) -> List[Dict]:
             row["tempo_bpm"] = float(row["tempo_bpm"])
             for feature in ("energy", "valence", "danceability", "acousticness"):
                 row[feature] = float(row[feature])
+            row["popularity"] = int(row["popularity"])
+            row["release_decade"] = int(row["release_decade"])
+            row["instrumentalness"] = float(row["instrumentalness"])
             songs.append(row)
     return songs
 
@@ -88,6 +101,47 @@ def _validate_energy(value: object, name: str) -> None:
             f"{name} must be a finite number between 0.0 and 1.0; "
             f"got {value!r}"
         )
+
+
+def _validate_range(value: object, name: str, minimum: float, maximum: float) -> None:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(value)
+        or not minimum <= value <= maximum
+    ):
+        raise ValueError(
+            f"{name} must be a finite number between {minimum:g} and {maximum:g}; "
+            f"got {value!r}"
+        )
+
+
+def _validate_decade(value: object, name: str) -> None:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value % 10 != 0
+        or not 1900 <= value <= 2100
+    ):
+        raise ValueError(
+            f"{name} must be a decade from 1900 to 2100; got {value!r}"
+        )
+
+
+def _normalize_tags(value: object, name: str) -> set[str]:
+    if isinstance(value, str):
+        tags = value.split("|")
+    elif isinstance(value, (list, tuple, set)):
+        tags = value
+    else:
+        raise ValueError(f"{name} must be a pipe-separated string or list of tags")
+
+    if any(not isinstance(tag, str) for tag in tags):
+        raise ValueError(f"{name} must contain only strings")
+    normalized = {tag.strip().casefold() for tag in tags if tag.strip()}
+    if not normalized:
+        raise ValueError(f"{name} must contain at least one non-empty tag")
+    return normalized
 
 
 def score_song(
@@ -118,6 +172,7 @@ def score_song(
     genre_points = genre_weight if genre_match else 0.0
     mood_points = 1.0 if mood_match else 0.0
     energy_points = energy_weight * energy_similarity
+    score = genre_points + mood_points + energy_points
     reasons = [
         f"Genre {'matches' if genre_match else 'does not match'} "
         f"{user_prefs['favorite_genre']} (+{genre_points:.1f}/{genre_weight:.0f})",
@@ -126,7 +181,68 @@ def score_song(
         f"Energy is {abs(song_energy - target_energy):.2f} "
         f"from your target (+{energy_points:.2f}/{energy_weight:.0f})",
     ]
-    return genre_points + mood_points + energy_points, reasons
+
+    if user_prefs.get("target_popularity") is not None:
+        target_popularity = user_prefs["target_popularity"]
+        _validate_range(target_popularity, "target_popularity", 0.0, 100.0)
+        _validate_range(song["popularity"], "song popularity", 0.0, 100.0)
+        similarity = 1.0 - abs(song["popularity"] - target_popularity) / 100.0
+        score += similarity
+        reasons.append(f"Popularity similarity (+{similarity:.2f}/1)")
+
+    if user_prefs.get("preferred_release_decade") is not None:
+        preferred_decade = user_prefs["preferred_release_decade"]
+        _validate_decade(preferred_decade, "preferred_release_decade")
+        _validate_decade(song["release_decade"], "song release_decade")
+        similarity = max(
+            0.0,
+            1.0 - abs(song["release_decade"] - preferred_decade) / 50.0,
+        )
+        score += similarity
+        reasons.append(f"Release-decade similarity (+{similarity:.2f}/1)")
+
+    if user_prefs.get("preferred_mood_tags") is not None:
+        preferred_tags = _normalize_tags(
+            user_prefs["preferred_mood_tags"],
+            "preferred_mood_tags",
+        )
+        song_tags = _normalize_tags(song["mood_tags"], "song mood_tags")
+        similarity = len(preferred_tags & song_tags) / len(preferred_tags)
+        score += similarity
+        reasons.append(f"Mood-tag overlap (+{similarity:.2f}/1)")
+
+    if user_prefs.get("preferred_language") is not None:
+        preferred_language = user_prefs["preferred_language"]
+        if not isinstance(preferred_language, str) or not preferred_language.strip():
+            raise ValueError("preferred_language must be a non-empty string")
+        song_language = song["language"]
+        if not isinstance(song_language, str) or not song_language.strip():
+            raise ValueError("song language must be a non-empty string")
+        language_match = (
+            song_language.strip().casefold()
+            == preferred_language.strip().casefold()
+        )
+        language_points = 1.0 if language_match else 0.0
+        score += language_points
+        reasons.append(
+            f"Language {'matches' if language_match else 'does not match'} "
+            f"{preferred_language} (+{language_points:.1f}/1)"
+        )
+
+    if user_prefs.get("target_instrumentalness") is not None:
+        target_instrumentalness = user_prefs["target_instrumentalness"]
+        _validate_range(
+            target_instrumentalness,
+            "target_instrumentalness",
+            0.0,
+            1.0,
+        )
+        _validate_range(song["instrumentalness"], "song instrumentalness", 0.0, 1.0)
+        similarity = 1.0 - abs(song["instrumentalness"] - target_instrumentalness)
+        score += similarity
+        reasons.append(f"Instrumentalness similarity (+{similarity:.2f}/1)")
+
+    return score, reasons
 
 def recommend_songs(
     user_prefs: Dict,

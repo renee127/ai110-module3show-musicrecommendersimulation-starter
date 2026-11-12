@@ -1,19 +1,19 @@
-id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness
-1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18
-2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71
-3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10
-4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86
-5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05
-6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92
-7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89
-8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22
-9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78
-10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35
-11,Velvet Groove,Amber Current,funk,playful,0.78,112,0.82,0.91,0.24
-12,Blue Window,Northbound Letters,folk,melancholic,0.31,76,0.28,0.39,0.88
-13,Paper Moons,Silver Orchard,classical,serene,0.22,68,0.67,0.18,0.94
-14,Voltage Bloom,Glass Harbor,metal,defiant,0.96,168,0.39,0.52,0.03
-15,Golden Hour Road,June Wilder,country,nostalgic,0.58,98,0.63,0.57,0.42
-16,Marigold Steps,Cielo Verde,reggae,carefree,0.66,88,0.79,0.76,0.31
-17,After the Call,Velvet Transit,r&b,romantic,0.49,84,0.61,0.64,0.47
-18,Open Water,The Tidal Lines,world,hopeful,0.71,106,0.86,0.68,0.21
+id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness,popularity,release_decade,mood_tags,language,instrumentalness
+1,Sunrise City,Neon Echo,pop,happy,0.82,118,0.84,0.79,0.18,84,2010,uplifting|optimistic|bright,English,0.12
+2,Midnight Coding,LoRoom,lofi,chill,0.42,78,0.56,0.62,0.71,67,2020,focused|calm|late-night,English,0.78
+3,Storm Runner,Voltline,rock,intense,0.91,152,0.48,0.66,0.10,72,2010,intense|adventurous|driving,English,0.08
+4,Library Rain,Paper Lanterns,lofi,chill,0.35,72,0.60,0.58,0.86,54,2010,calming|rainy|reflective,English,0.92
+5,Gym Hero,Max Pulse,pop,intense,0.93,132,0.77,0.88,0.05,90,2020,intense|motivational|energetic,English,0.03
+6,Spacewalk Thoughts,Orbit Bloom,ambient,chill,0.28,60,0.65,0.41,0.92,43,2010,ambient|peaceful|spacious,Instrumental,0.98
+7,Coffee Shop Stories,Slow Stereo,jazz,relaxed,0.37,90,0.71,0.54,0.89,61,2010,relaxed|warm|social,English,0.22
+8,Night Drive Loop,Neon Echo,synthwave,moody,0.75,110,0.49,0.73,0.22,76,2020,moody|nostalgic|night-drive,English,0.14
+9,Focus Flow,LoRoom,lofi,focused,0.40,80,0.59,0.60,0.78,70,2020,focused|calm|productive,English,0.68
+10,Rooftop Lights,Indigo Parade,indie pop,happy,0.76,124,0.81,0.82,0.35,79,2020,uplifting|romantic|bright,English,0.21
+11,Velvet Groove,Amber Current,funk,playful,0.78,112,0.82,0.91,0.24,58,2010,playful|groovy|energetic,English,0.10
+12,Blue Window,Northbound Letters,folk,melancholic,0.31,76,0.28,0.39,0.88,39,2010,melancholic|nostalgic|reflective,English,0.91
+13,Paper Moons,Silver Orchard,classical,serene,0.22,68,0.67,0.18,0.94,48,2020,serene|calm|cinematic,Instrumental,0.99
+14,Voltage Bloom,Glass Harbor,metal,defiant,0.96,168,0.39,0.52,0.03,65,2020,defiant|aggressive|intense,English,0.04
+15,Golden Hour Road,June Wilder,country,nostalgic,0.58,98,0.63,0.57,0.42,73,2010,nostalgic|warm|storytelling,English,0.27
+16,Marigold Steps,Cielo Verde,reggae,carefree,0.66,88,0.79,0.76,0.31,57,2010,carefree|sunny|groovy,English,0.16
+17,After the Call,Velvet Transit,r&b,romantic,0.49,84,0.61,0.64,0.47,81,2020,romantic|intimate|smooth,English,0.35
+18,Open Water,The Tidal Lines,world,hopeful,0.71,106,0.86,0.68,0.21,69,2020,hopeful|cinematic|expansive,English,0.23

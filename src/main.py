@@ -8,6 +8,14 @@ from textwrap import wrap
 
 from src.recommender import load_songs, recommend_songs
 
+ADVANCED_PREFERENCE_KEYS = (
+    "target_popularity",
+    "preferred_release_decade",
+    "preferred_mood_tags",
+    "preferred_language",
+    "target_instrumentalness",
+)
+
 
 def print_recommendation_table(
     recommendations: list[tuple[dict, float, str]],
@@ -42,6 +50,14 @@ def print_recommendation_table(
                 )
             )
         print(border())
+
+
+def score_ceiling(user_prefs: dict) -> int:
+    """Return the maximum score for the preferences supplied by the user."""
+    return 4 + sum(
+        user_prefs.get(key) is not None
+        for key in ADVANCED_PREFERENCE_KEYS
+    )
 
 
 def main() -> None:
@@ -97,6 +113,19 @@ def main() -> None:
                 "target_energy": 0.40,
             },
         ),
+        (
+            "Advanced Feature Mix",
+            {
+                "favorite_genre": "funk",
+                "favorite_mood": "playful",
+                "target_energy": 0.78,
+                "target_popularity": 58,
+                "preferred_release_decade": 2010,
+                "preferred_mood_tags": ["groovy", "energetic"],
+                "preferred_language": "English",
+                "target_instrumentalness": 0.10,
+            },
+        ),
     ]
 
     for profile_name, user_prefs in profiles:
@@ -111,7 +140,10 @@ def main() -> None:
             f"({user_prefs['favorite_genre']} / {user_prefs['favorite_mood']}, "
             f"target energy: {user_prefs['target_energy']:.2f}):\n"
         )
-        print_recommendation_table(recommendations)
+        print_recommendation_table(
+            recommendations,
+            max_score=score_ceiling(user_prefs),
+        )
 
     experiment_profile_name, experiment_profile = profiles[0]
     experiment_recommendations = recommend_songs(
@@ -124,7 +156,10 @@ def main() -> None:
         f"\nWeight-shift experiment for {experiment_profile_name} "
         "(genre 2 -> 1, energy 1 -> 2, mood stays 1):\n"
     )
-    print_recommendation_table(experiment_recommendations, max_score=5)
+    print_recommendation_table(
+        experiment_recommendations,
+        max_score=score_ceiling(experiment_profile),
+    )
 
 
 if __name__ == "__main__":

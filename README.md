@@ -11,16 +11,30 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+**TODO — Write a short summary in your own words.** Describe what this version
+of VibeFinder does and what makes its recommendations.
+
+---
+
+## How Real-World Music Recommenders Work
+
+**TODO — Add a brief explanation in your own words.** Explain that services
+such as Spotify or YouTube may use song features (for example genre, mood, or
+tempo), a listener's activity (such as plays, skips, likes, and history), and
+patterns across listeners. Distinguish those input data from a listener's
+preferences, then explain that a ranking step selects which songs or videos
+to show. Keep this general; this classroom project does not reproduce those
+services' systems.
 
 ---
 
 ## How The System Works
 
 This project uses content-based filtering: it compares each song's catalog
-features with the user's stated preferences. The user profile contains
-`favorite_genre`, `favorite_mood`, and `target_energy`; each song provides
-`genre`, `mood`, and `energy` (on a 0.0–1.0 scale).
+features with the user's stated preferences. Every profile uses
+`favorite_genre`, `favorite_mood`, and `target_energy`; users can also opt into
+preferences for popularity, release decade, mood tags, language, and
+instrumentalness.
 
 The recommendation plan is:
 
@@ -28,14 +42,20 @@ The recommendation plan is:
 2. Score every song independently. Add 2 points for an exact genre match and
    1 point for an exact mood match. Add up to 1 energy point using
    `max(0, 1 - abs(song energy - target energy))`.
-3. Add the points for a total score from 0 to 4, keeping the feature
-   contributions as an explanation.
-4. Sort songs by score, highest first, and return the first `k` recommendations.
+3. If an advanced preference is supplied, add up to one more point for its
+   similarity to each song: popularity and instrumentalness use distance,
+   release decade loses credit with decade distance, mood tags use overlap,
+   and language uses a case-insensitive exact match.
+4. Add the points and keep the feature contributions as an explanation. The
+   baseline maximum is 4; each enabled advanced preference adds 1 to the
+   maximum.
+5. Sort songs by score, highest first, and return the first `k` recommendations.
 
 Genre and mood matches are exact after trimming surrounding whitespace and
-ignoring case; related labels do not currently receive partial credit. The
-system uses only these three features, so its results depend on the catalog
-labels and energy values.
+ignoring case; related genre and mood labels do not currently receive partial
+credit. Profiles without advanced preferences retain the original three-feature
+scoring. The new feature values and tags are illustrative classroom metadata,
+not verified facts about real recordings.
 The object-oriented `Recommender` methods use the same default scoring rules
 and explanations as the functional CLI helpers; the optional weight-shift
 experiment is available through the functional helpers.
@@ -47,7 +67,7 @@ genres and moods, and the small catalog may underrepresent many musical styles.
 
 ```mermaid
 flowchart LR
-    A[User preferences<br/>favorite genre, mood, target energy] --> C
+    A[User preferences<br/>genre, mood, energy, optional advanced preferences] --> C
     B[CSV song catalog] --> C[Score each song]
     C --> D[Collect song and score]
     D --> E[Sort by score, highest first]
@@ -228,13 +248,12 @@ Weight-shift experiment for High-Energy Pop (genre 2 -> 1, energy 1 -> 2, mood s
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
+The 18-song catalog and its advanced metadata are synthetic, so they cannot
+establish real-world recommendation quality. Each enabled advanced preference
+can contribute a full point, which may let a profile that supplies more
+preferences earn higher totals than a baseline profile. Popularity, decade,
+language, and instrumentalness are simple proxies and cannot represent a
+listener's full musical taste.
 
 You will go deeper on this in your model card.
 
@@ -246,10 +265,13 @@ Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
 
-Write 1 to 2 paragraphs here about what you learned:
+**TODO — Add your own 1–2 paragraph reflection here, or complete the
+Personal Reflection section in `model_card.md`.** Include:
 
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
+- your biggest learning moment and how you used AI tools
+- what surprised you and what you would try next
 
 ## Profile Ranking Results and Explanations
 
@@ -315,3 +337,11 @@ validation now reports the bad input rather than returning misleading results.
 
 Although Focus Flow has an exact energy match, songs matching both categorical
 preferences rank above it because genre and mood together contribute 3 points.
+
+### Advanced Feature Mix — funk / playful / target energy 0.78
+
+This profile also asks for popularity 58, the 2010s, `groovy` and `energetic`
+tags, English, and instrumentalness 0.10. All five optional preferences match
+Velvet Groove's catalog values, so it receives the maximum score of 9.00/9.
+This is an illustration of the scoring rules, not evidence that a listener
+would prefer that song.

@@ -14,8 +14,11 @@ from src.main import print_recommendation_table
 def test_load_songs_converts_csv_values_to_numbers(tmp_path):
     csv_path = tmp_path / "songs.csv"
     csv_path.write_text(
-        "id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,acousticness\n"
-        "1,Test Song,Test Artist,pop,happy,0.8,120,0.9,0.7,0.2\n",
+        "id,title,artist,genre,mood,energy,tempo_bpm,valence,danceability,"
+        "acousticness,popularity,release_decade,mood_tags,language,"
+        "instrumentalness\n"
+        "1,Test Song,Test Artist,pop,happy,0.8,120,0.9,0.7,0.2,75,2020,"
+        "uplifting|bright,English,0.25\n",
         encoding="utf-8",
     )
 
@@ -26,6 +29,134 @@ def test_load_songs_converts_csv_values_to_numbers(tmp_path):
     assert isinstance(songs[0]["tempo_bpm"], float)
     for feature in ("energy", "valence", "danceability", "acousticness"):
         assert isinstance(songs[0][feature], float)
+    assert songs[0]["popularity"] == 75
+    assert isinstance(songs[0]["popularity"], int)
+    assert songs[0]["release_decade"] == 2020
+    assert isinstance(songs[0]["release_decade"], int)
+    assert songs[0]["mood_tags"] == "uplifting|bright"
+    assert songs[0]["language"] == "English"
+    assert songs[0]["instrumentalness"] == 0.25
+
+
+def test_advanced_preferences_add_points_only_when_enabled():
+    baseline_profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.8,
+    }
+    advanced_profile = {
+        **baseline_profile,
+        "target_popularity": 80,
+        "preferred_release_decade": 2020,
+        "preferred_mood_tags": ["uplifting", "bright"],
+        "preferred_language": "english",
+        "target_instrumentalness": 0.2,
+    }
+    song = {
+        "genre": "pop",
+        "mood": "happy",
+        "energy": 0.8,
+        "popularity": 80,
+        "release_decade": 2020,
+        "mood_tags": "Uplifting|bright|hopeful",
+        "language": "English",
+        "instrumentalness": 0.2,
+    }
+
+    baseline_score, _ = score_song(baseline_profile, song)
+    advanced_score, reasons = score_song(advanced_profile, song)
+
+    assert baseline_score == 4.0
+    assert advanced_score == 9.0
+    assert len(reasons) == 8
+    assert "Popularity similarity (+1.00/1)" in reasons
+    assert "Release-decade similarity (+1.00/1)" in reasons
+    assert "Mood-tag overlap (+1.00/1)" in reasons
+    assert "Language matches english (+1.0/1)" in reasons
+    assert "Instrumentalness similarity (+1.00/1)" in reasons
+
+
+@pytest.mark.parametrize(
+    ("preference", "song_value", "expected_points"),
+    [
+        ("target_popularity", 0, 0.2),
+        ("preferred_release_decade", 2010, 0.8),
+        ("preferred_mood_tags", "calm|reflective", 0.0),
+        ("preferred_language", "Spanish", 0.0),
+        ("target_instrumentalness", 0.8, 0.4),
+    ],
+)
+def test_advanced_feature_similarity_changes_score(
+    preference,
+    song_value,
+    expected_points,
+):
+    profile = {
+        "favorite_genre": "other",
+        "favorite_mood": "other",
+        "target_energy": 0.5,
+    }
+    song = {
+        "genre": "other",
+        "mood": "other",
+        "energy": 0.5,
+        "popularity": 80,
+        "release_decade": 2020,
+        "mood_tags": "uplifting|bright",
+        "language": "English",
+        "instrumentalness": 0.2,
+    }
+    profile[preference] = {
+        "target_popularity": 80,
+        "preferred_release_decade": 2020,
+        "preferred_mood_tags": ["uplifting", "bright"],
+        "preferred_language": "English",
+        "target_instrumentalness": 0.2,
+    }[preference]
+    song[preference.removeprefix("target_").removeprefix("preferred_")] = song_value
+
+    score, _ = score_song(profile, song)
+
+    assert score == pytest.approx(4.0 + expected_points)
+
+
+@pytest.mark.parametrize(
+    ("preference", "invalid_value", "error"),
+    [
+        ("target_popularity", 101, "target_popularity"),
+        ("target_popularity", float("nan"), "target_popularity"),
+        ("preferred_release_decade", 2015, "preferred_release_decade"),
+        ("preferred_mood_tags", ["  ", ""], "at least one non-empty tag"),
+        ("preferred_mood_tags", ["calm", 1], "only strings"),
+        ("preferred_language", "  ", "non-empty string"),
+        ("target_instrumentalness", -0.1, "target_instrumentalness"),
+        ("target_instrumentalness", float("inf"), "target_instrumentalness"),
+    ],
+)
+def test_invalid_advanced_preferences_are_rejected(
+    preference,
+    invalid_value,
+    error,
+):
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.8,
+        preference: invalid_value,
+    }
+    song = {
+        "genre": "pop",
+        "mood": "happy",
+        "energy": 0.8,
+        "popularity": 50,
+        "release_decade": 2020,
+        "mood_tags": "calm",
+        "language": "English",
+        "instrumentalness": 0.5,
+    }
+
+    with pytest.raises(ValueError, match=error):
+        score_song(profile, song)
 
 
 def test_score_song_uses_genre_mood_and_energy_weights():
