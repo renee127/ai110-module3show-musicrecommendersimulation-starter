@@ -2,29 +2,13 @@
 
 ## Project Summary
 
-In this project you will build and explain a small music recommender system.
-
-Your goal is to:
-
-- Represent songs and a user "taste profile" as data
-- Design a scoring rule that turns that data into recommendations
-- Evaluate what your system gets right and wrong
-- Reflect on how this mirrors real world AI recommenders
-
-**TODO — Write a short summary in your own words.** Describe what this version
-of VibeFinder does and what makes its recommendations.
+VibeFinder is a content-based music recommender simulation that ranks tracks from an 18-song catalog by matching song attributes directly against a user's explicit taste profile. Rather than relying on listening history from other users, it computes a weighted similarity score across core traits—genre, mood, and target energy—as well as expanded attributes including popularity, release decade, mood tags, language, and instrumentalness. It also lets users toggle between a balanced default ranking mode and an energy-focused mode, pairing every recommendation with itemized reasons explaining why that track fit their vibe.
 
 ---
 
 ## How Real-World Music Recommenders Work
 
-**TODO — Add a brief explanation in your own words.** Explain that services
-such as Spotify or YouTube may use song features (for example genre, mood, or
-tempo), a listener's activity (such as plays, skips, likes, and history), and
-patterns across listeners. Distinguish those input data from a listener's
-preferences, then explain that a ranking step selects which songs or videos
-to show. Keep this general; this classroom project does not reproduce those
-services' systems.
+Large-scale streaming platforms like Spotify and YouTube predict what to play next by combining content-based filtering (analyzing track attributes such as genre, mood, and tempo) with collaborative filtering (finding patterns across listeners with similar habits). In these systems, input data consists of raw, observable signals—both audio metadata and listener activity such as plays, skips, likes, and playlist additions. Listener preferences, by contrast, represent the underlying taste profile inferred from those signals (or set explicitly by a user), capturing what kinds of music a person actually enjoys rather than the raw interaction logs themselves.   To turn those signals into a feed or playlist, the system first scores candidate tracks against a listener's preferences and then applies a ranking step that sorts the catalog by predicted relevance and selects the top songs or videos to display. Because this classroom project does not have access to multi-user listening histories at commercial scale, it does not reproduce those production systems and instead models a simplified content-based scoring and ranking pipeline.  
 
 ---
 
@@ -264,14 +248,6 @@ You will go deeper on this in your model card.
 Read and complete `model_card.md`:
 
 [**Model Card**](model_card.md)
-
-**TODO — Add your own 1–2 paragraph reflection here, or complete the
-Personal Reflection section in `model_card.md`.** Include:
-
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
-- your biggest learning moment and how you used AI tools
-- what surprised you and what you would try next
 
 ## Profile Ranking Results and Explanations
 
