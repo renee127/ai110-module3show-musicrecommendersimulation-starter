@@ -1,4 +1,5 @@
 import csv
+import math
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 
@@ -58,18 +59,37 @@ def load_songs(csv_path: str) -> List[Dict]:
             songs.append(row)
     return songs
 
+
+def _validate_energy(value: object, name: str) -> None:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not 0.0 <= value <= 1.0
+        or not math.isfinite(value)
+    ):
+        raise ValueError(
+            f"{name} must be a finite number between 0.0 and 1.0; "
+            f"got {value!r}"
+        )
+
+
 def score_song(
     user_prefs: Dict,
     song: Dict,
     weight_shift: bool = False,
 ) -> Tuple[float, List[str]]:
     """Score a song against user preferences and explain each contribution."""
+    song_energy = song["energy"]
+    target_energy = user_prefs["target_energy"]
+    _validate_energy(song_energy, "song energy")
+    _validate_energy(target_energy, "target_energy")
+
     genre_match = (
         song["genre"].casefold() == user_prefs["favorite_genre"].casefold()
     )
     mood_match = song["mood"].casefold() == user_prefs["favorite_mood"].casefold()
     energy_similarity = max(
-        0.0, 1.0 - abs(song["energy"] - user_prefs["target_energy"])
+        0.0, 1.0 - abs(song_energy - target_energy)
     )
 
     genre_weight = 1.0 if weight_shift else 2.0
@@ -82,7 +102,7 @@ def score_song(
         f"{user_prefs['favorite_genre']} (+{genre_points:.1f}/{genre_weight:.0f})",
         f"Mood {'matches' if mood_match else 'does not match'} "
         f"{user_prefs['favorite_mood']} (+{mood_points:.1f}/1)",
-        f"Energy is {abs(song['energy'] - user_prefs['target_energy']):.2f} "
+        f"Energy is {abs(song_energy - target_energy):.2f} "
         f"from your target (+{energy_points:.2f}/{energy_weight:.0f})",
     ]
     return genre_points + mood_points + energy_points, reasons
@@ -96,6 +116,7 @@ def recommend_songs(
     """Return the top k songs ranked by score with explanations."""
     if k < 0:
         raise ValueError("k must be non-negative")
+    _validate_energy(user_prefs["target_energy"], "target_energy")
 
     scored_songs = []
     for song in songs:

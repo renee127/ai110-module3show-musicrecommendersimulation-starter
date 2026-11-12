@@ -63,7 +63,11 @@ def main() -> None:
     ]
 
     for profile_name, user_prefs in profiles:
-        recommendations = recommend_songs(user_prefs, songs, k=5)
+        try:
+            recommendations = recommend_songs(user_prefs, songs, k=5)
+        except ValueError as error:
+            print(f"\nRejected profile {profile_name}: {error}")
+            continue
 
         print(
             f"\nTop recommendations for {profile_name} "

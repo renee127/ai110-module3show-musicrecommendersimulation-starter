@@ -1,3 +1,5 @@
+import pytest
+
 from src.recommender import (
     Recommender,
     Song,
@@ -74,6 +76,59 @@ def test_recommend_songs_ranks_using_genre_and_mood_scores():
     assert recommendations[0][1] == 4.0
 
 
+def test_recommend_songs_with_zero_k_returns_empty_list():
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.8,
+    }
+    songs = [{"title": "Test Song", "genre": "pop", "mood": "happy", "energy": 0.8}]
+
+    assert recommend_songs(profile, songs, k=0) == []
+
+
+def test_recommend_songs_with_k_larger_than_catalog_returns_all_sorted():
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.8,
+    }
+    songs = [
+        {"title": "No Match", "genre": "rock", "mood": "sad", "energy": 0.2},
+        {"title": "Full Match", "genre": "pop", "mood": "happy", "energy": 0.8},
+    ]
+
+    recommendations = recommend_songs(profile, songs, k=5)
+
+    assert len(recommendations) == len(songs)
+    assert [song["title"] for song, _, _ in recommendations] == [
+        "Full Match",
+        "No Match",
+    ]
+
+
+def test_recommend_songs_preserves_catalog_order_for_tied_scores():
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.5,
+    }
+    songs = [
+        {"title": "First Tie", "genre": "rock", "mood": "sad", "energy": 0.4},
+        {"title": "Higher Score", "genre": "pop", "mood": "happy", "energy": 0.5},
+        {"title": "Second Tie", "genre": "jazz", "mood": "calm", "energy": 0.6},
+    ]
+
+    recommendations = recommend_songs(profile, songs, k=3)
+
+    assert [song["title"] for song, _, _ in recommendations] == [
+        "Higher Score",
+        "First Tie",
+        "Second Tie",
+    ]
+    assert recommendations[1][1] == recommendations[2][1]
+
+
 def test_energy_similarity_decreases_with_distance_from_target():
     profile = {
         "favorite_genre": "pop",
@@ -92,6 +147,82 @@ def test_energy_similarity_decreases_with_distance_from_target():
 
     assert exact_energy_score == 1.0
     assert distant_energy_score == 0.6
+
+
+@pytest.mark.parametrize("energy", [0.0, 1.0])
+def test_energy_boundaries_receive_full_similarity_credit(energy):
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": energy,
+    }
+    song = {"genre": "other", "mood": "other", "energy": energy}
+
+    score, reasons = score_song(profile, song)
+
+    assert score == 1.0
+    assert reasons[-1].endswith("(+1.00/1)")
+
+
+@pytest.mark.parametrize(
+    "energy",
+    [-0.1, 1.1, 2.0, float("nan"), float("inf"), True, "0.5"],
+)
+def test_invalid_target_energy_is_rejected(energy):
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": energy,
+    }
+
+    with pytest.raises(ValueError, match="target_energy must be a finite number"):
+        score_song(
+            profile,
+            {"genre": "pop", "mood": "happy", "energy": 0.8},
+        )
+
+
+@pytest.mark.parametrize(
+    "energy",
+    [-0.1, 1.1, 2.0, float("nan"), float("inf"), True, "0.5"],
+)
+def test_invalid_song_energy_is_rejected(energy):
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 0.8,
+    }
+
+    with pytest.raises(ValueError, match="song energy must be a finite number"):
+        score_song(
+            profile,
+            {"genre": "pop", "mood": "happy", "energy": energy},
+        )
+
+
+def test_recommend_songs_propagates_invalid_energy():
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 2.0,
+    }
+
+    with pytest.raises(ValueError, match="target_energy must be a finite number"):
+        recommend_songs(
+            profile,
+            [{"genre": "pop", "mood": "happy", "energy": 0.8}],
+        )
+
+
+def test_recommend_songs_validates_target_even_for_empty_catalog():
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "happy",
+        "target_energy": 2.0,
+    }
+
+    with pytest.raises(ValueError, match="target_energy must be a finite number"):
+        recommend_songs(profile, [])
 
 
 def test_weight_shift_halves_genre_and_doubles_energy_weight():

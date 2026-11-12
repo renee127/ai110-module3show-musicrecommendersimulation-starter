@@ -173,27 +173,12 @@ Top recommendations for Conflicting: Metal / Melancholic / High Energy (metal / 
 **Out-of-range energy target: country / serene / 2.0**
 
 ```text
-Top recommendations for Out-of-Range Energy Target (country / serene, target energy: 2.00):
-
-1. Golden Hour Road - Score: 2.00/4
-   Reasons: Genre matches country (+2.0/2); Mood does not match serene (+0.0/1); Energy is 1.42 from your target (+0.00/1)
-
-2. Paper Moons - Score: 1.00/4
-   Reasons: Genre does not match country (+0.0/2); Mood matches serene (+1.0/1); Energy is 1.78 from your target (+0.00/1)
-
-3. Sunrise City - Score: 0.00/4
-   Reasons: Genre does not match country (+0.0/2); Mood does not match serene (+0.0/1); Energy is 1.18 from your target (+0.00/1)
-
-4. Midnight Coding - Score: 0.00/4
-   Reasons: Genre does not match country (+0.0/2); Mood does not match serene (+0.0/1); Energy is 1.58 from your target (+0.00/1)
-
-5. Storm Runner - Score: 0.00/4
-   Reasons: Genre does not match country (+0.0/2); Mood does not match serene (+0.0/1); Energy is 1.09 from your target (+0.00/1)
+Rejected profile Out-of-Range Energy Target: target_energy must be a finite number between 0.0 and 1.0; got 2.0
 ```
 
-All songs receive zero energy points in this case because the similarity formula
-floors negative values at 0. The ties remain in catalog order. This also shows
-the current scorer does not validate that target energy is within 0.0–1.0.
+Previously, an out-of-range target gave all songs zero energy points. The
+scorer now rejects the invalid profile instead. Targets and song energy values
+of exactly 0.0 or 1.0 are valid.
 
 **Case-insensitive labels and exact energy: LoFi / CHILL / 0.40**
 
@@ -333,16 +318,9 @@ case-insensitive mood match, and up to +1 for energy similarity. `G`, `M`, and
 
 ### Out-of-Range Energy Target — country / serene / target energy 2.00
 
-| Rank | Song | Score | Why it ranked |
-|---:|---|---:|---|
-| 1 | Golden Hour Road | 2.00 | G +2, M +0, E +0: country match; energy similarity floors at zero. |
-| 2 | Paper Moons | 1.00 | G +0, M +1, E +0: serene match; energy similarity floors at zero. |
-| 3 | Sunrise City | 0.00 | G +0, M +0, E +0: no label matches and no energy points. |
-| 4 | Midnight Coding | 0.00 | G +0, M +0, E +0: no label matches and no energy points. |
-| 5 | Storm Runner | 0.00 | G +0, M +0, E +0: no label matches and no energy points. |
-
-All songs receive zero energy points for this out-of-range target, so the final
-three zero-score songs retain their catalog order.
+The recommender rejects this profile before ranking because 2.0 is outside the
+valid 0.0–1.0 energy scale. Previously all songs received zero energy points;
+validation now reports the bad input rather than returning misleading results.
 
 ### Case-Insensitive Labels / Exact Energy — LoFi / CHILL / target energy 0.40
 
