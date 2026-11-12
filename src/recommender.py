@@ -58,7 +58,11 @@ def load_songs(csv_path: str) -> List[Dict]:
             songs.append(row)
     return songs
 
-def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
+def score_song(
+    user_prefs: Dict,
+    song: Dict,
+    weight_shift: bool = False,
+) -> Tuple[float, List[str]]:
     """Score a song against user preferences and explain each contribution."""
     genre_match = (
         song["genre"].casefold() == user_prefs["favorite_genre"].casefold()
@@ -68,27 +72,34 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
         0.0, 1.0 - abs(song["energy"] - user_prefs["target_energy"])
     )
 
-    genre_points = 2.0 if genre_match else 0.0
+    genre_weight = 1.0 if weight_shift else 2.0
+    energy_weight = 2.0 if weight_shift else 1.0
+    genre_points = genre_weight if genre_match else 0.0
     mood_points = 1.0 if mood_match else 0.0
-    energy_points = energy_similarity
+    energy_points = energy_weight * energy_similarity
     reasons = [
         f"Genre {'matches' if genre_match else 'does not match'} "
-        f"{user_prefs['favorite_genre']} (+{genre_points:.1f}/2)",
+        f"{user_prefs['favorite_genre']} (+{genre_points:.1f}/{genre_weight:.0f})",
         f"Mood {'matches' if mood_match else 'does not match'} "
         f"{user_prefs['favorite_mood']} (+{mood_points:.1f}/1)",
         f"Energy is {abs(song['energy'] - user_prefs['target_energy']):.2f} "
-        f"from your target (+{energy_points:.2f}/1)",
+        f"from your target (+{energy_points:.2f}/{energy_weight:.0f})",
     ]
     return genre_points + mood_points + energy_points, reasons
 
-def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
+def recommend_songs(
+    user_prefs: Dict,
+    songs: List[Dict],
+    k: int = 5,
+    weight_shift: bool = False,
+) -> List[Tuple[Dict, float, str]]:
     """Return the top k songs ranked by score with explanations."""
     if k < 0:
         raise ValueError("k must be non-negative")
 
     scored_songs = []
     for song in songs:
-        score, reasons = score_song(user_prefs, song)
+        score, reasons = score_song(user_prefs, song, weight_shift=weight_shift)
         scored_songs.append((song, score, "; ".join(reasons)))
     return sorted(
         scored_songs,

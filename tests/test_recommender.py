@@ -93,6 +93,36 @@ def test_energy_similarity_decreases_with_distance_from_target():
     assert exact_energy_score == 1.0
     assert distant_energy_score == 0.6
 
+
+def test_weight_shift_halves_genre_and_doubles_energy_weight():
+    profile = {
+        "favorite_genre": "pop",
+        "favorite_mood": "intense",
+        "target_energy": 0.93,
+    }
+    songs = [
+        {"title": "Sunrise City", "genre": "pop", "mood": "happy", "energy": 0.82},
+        {"title": "Storm Runner", "genre": "rock", "mood": "intense", "energy": 0.91},
+        {"title": "Gym Hero", "genre": "pop", "mood": "intense", "energy": 0.93},
+    ]
+
+    baseline = recommend_songs(profile, songs, k=3)
+    shifted = recommend_songs(profile, songs, k=3, weight_shift=True)
+
+    assert [song["title"] for song, _, _ in baseline] == [
+        "Gym Hero",
+        "Sunrise City",
+        "Storm Runner",
+    ]
+    assert [song["title"] for song, _, _ in shifted] == [
+        "Gym Hero",
+        "Storm Runner",
+        "Sunrise City",
+    ]
+    assert shifted[1][1] == 2.96
+    assert shifted[2][1] == 2.78
+
+
 def make_small_recommender() -> Recommender:
     songs = [
         Song(
