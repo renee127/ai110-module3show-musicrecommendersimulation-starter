@@ -10,10 +10,12 @@
 
 **What task did you give the agent?**
 
-Add at least five advanced song attributes, use them in recommendation
-scoring, and document the AI-assisted workflow and manual checks.
+Add advanced song features and an alternate ranking mode, then record the
+prompt, generated changes, and manual verification.
 
 **Prompts used:**
+
+**Advanced song features**
 
 > Introduce **5 or more** complex attributes to your dataset that are not
 > currently present in the baseline data, such as **Song Popularity (0-100)**,
@@ -24,15 +26,33 @@ scoring, and document the AI-assisted workflow and manual checks.
 > you used, a summary of the changes the AI generated, and your manual
 > verification notes.
 
+**Alternate ranking mode**
+
+> Now do some variations of **Step 3: Run a Small Data Experiment**
+> - Choose one change to test your system's sensitivity:
+> - **Weight Shift:** Double the importance of energy and half the importance
+>   of genre.
+> - **Feature Removal:** Temporarily comment out the mood check to see how the
+>   rankings change.
+> - Use your AI coding assistant to quickly apply one of these experimental
+>   changes across `recommender.py`. In your prompt, describe the specific
+>   logic change you want to see and ask it to verify that the math remains
+>   valid.
+> - Run your `main.py` again. Note whether the change made the recommendations
+>   more accurate or just different.
+
+I chose the weight-shift variation.
+
 **What did the agent generate or change?**
 
 - Added popularity, release decade, mood tags, language, and instrumentalness
-  to the song model and CSV catalog.
-- Added optional user preferences and similarity points for those attributes.
-  Profiles that omit them keep the original scoring; each enabled preference
-  can add up to one point.
-- Added an advanced-preference CLI profile and score denominator, plus tests
-  for loading, scoring, and invalid preferences.
+  to the song model and all 18 CSV rows.
+- Added optional user preferences and up to one similarity point per enabled
+  feature. Profiles that omit advanced preferences keep the original score.
+- Kept the standard ranker and added a weight-shift mode: genre changes from
+  2 points to 1, and energy from up to 1 point to up to 2; mood remains 1.
+- Added an advanced-preference CLI profile with a matching score denominator,
+  and tests for feature loading, scoring, validation, and ranking behavior.
 - Updated the README and model card to describe the optional features and
   synthetic example metadata.
 
@@ -41,11 +61,12 @@ scoring, and document the AI-assisted workflow and manual checks.
 I checked that all 18 catalog rows load with the five new columns and numeric
 values are converted by the CSV loader. The advanced CLI profile matches all
 five optional preferences for Velvet Groove and prints 9.00/9; ordinary
-profiles still use a maximum of 4. I also checked the single-feature tests
-against the existing four-point baseline so they measure only the advanced
-feature being changed. `python3 -m pytest -q` passed all 46 tests, and
-`python3 -m src.main` completed with the advanced profile and the existing
-weight-shift experiment.
+profiles still use a maximum of 4. I checked the weight-shift arithmetic:
+Gym Hero remains first, while Storm Runner moves above Sunrise City because
+the energy match has more weight. I corrected the single-feature tests to
+compare each advanced feature's contribution against the four-point baseline.
+`python3 -m pytest -q` passed all 46 tests, and `python3 -m src.main`
+completed with both the advanced profile and weight-shift mode.
 
 ---
 
