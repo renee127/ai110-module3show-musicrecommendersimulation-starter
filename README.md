@@ -93,59 +93,36 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
+The CLI uses a simple ASCII table with wrapped reason text, so no extra table
+library is needed.
+
 ```
 Loaded songs: 18
 
 Top recommendations for High-Energy Pop (pop / intense, target energy: 0.93):
 
-1. Gym Hero - Score: 4.00/4
-   Reasons: Genre matches pop (+2.0/2); Mood matches intense (+1.0/1); Energy is 0.00 from your target (+1.00/1)
-
-2. Sunrise City - Score: 2.89/4
-   Reasons: Genre matches pop (+2.0/2); Mood does not match intense (+0.0/1); Energy is 0.11 from your target (+0.89/1)
-
-3. Storm Runner - Score: 1.98/4
-   Reasons: Genre does not match pop (+0.0/2); Mood matches intense (+1.0/1); Energy is 0.02 from your target (+0.98/1)
-
-4. Voltage Bloom - Score: 0.97/4
-   Reasons: Genre does not match pop (+0.0/2); Mood does not match intense (+0.0/1); Energy is 0.03 from your target (+0.97/1)
-
-5. Velvet Groove - Score: 0.85/4
-   Reasons: Genre does not match pop (+0.0/2); Mood does not match intense (+0.0/1); Energy is 0.15 from your target (+0.85/1)
-
-Top recommendations for Chill Lofi (lofi / chill, target energy: 0.40):
-
-1. Midnight Coding - Score: 3.98/4
-   Reasons: Genre matches lofi (+2.0/2); Mood matches chill (+1.0/1); Energy is 0.02 from your target (+0.98/1)
-
-2. Library Rain - Score: 3.95/4
-   Reasons: Genre matches lofi (+2.0/2); Mood matches chill (+1.0/1); Energy is 0.05 from your target (+0.95/1)
-
-3. Focus Flow - Score: 3.00/4
-   Reasons: Genre matches lofi (+2.0/2); Mood does not match chill (+0.0/1); Energy is 0.00 from your target (+1.00/1)
-
-4. Spacewalk Thoughts - Score: 1.88/4
-   Reasons: Genre does not match lofi (+0.0/2); Mood matches chill (+1.0/1); Energy is 0.12 from your target (+0.88/1)
-
-5. Coffee Shop Stories - Score: 0.97/4
-   Reasons: Genre does not match lofi (+0.0/2); Mood does not match chill (+0.0/1); Energy is 0.03 from your target (+0.97/1)
-
-Top recommendations for Deep Intense Rock (rock / intense, target energy: 0.91):
-
-1. Storm Runner - Score: 4.00/4
-   Reasons: Genre matches rock (+2.0/2); Mood matches intense (+1.0/1); Energy is 0.00 from your target (+1.00/1)
-
-2. Gym Hero - Score: 1.98/4
-   Reasons: Genre does not match rock (+0.0/2); Mood matches intense (+1.0/1); Energy is 0.02 from your target (+0.98/1)
-
-3. Voltage Bloom - Score: 0.95/4
-   Reasons: Genre does not match rock (+0.0/2); Mood does not match intense (+0.0/1); Energy is 0.05 from your target (+0.95/1)
-
-4. Sunrise City - Score: 0.91/4
-   Reasons: Genre does not match rock (+0.0/2); Mood does not match intense (+0.0/1); Energy is 0.09 from your target (+0.91/1)
-
-5. Velvet Groove - Score: 0.87/4
-   Reasons: Genre does not match rock (+0.0/2); Mood does not match intense (+0.0/1); Energy is 0.13 from your target (+0.87/1)
++------+----------------------+----------+--------------------------------------------------------+
+| Rank | Song                 | Score    | Reasons                                                |
++------+----------------------+----------+--------------------------------------------------------+
+| 1    | Gym Hero             | 4.00/4   | Genre matches pop (+2.0/2); Mood matches intense       |
+|      |                      |          | (+1.0/1); Energy is 0.00 from your target (+1.00/1)    |
++------+----------------------+----------+--------------------------------------------------------+
+| 2    | Sunrise City         | 2.89/4   | Genre matches pop (+2.0/2); Mood does not match        |
+|      |                      |          | intense (+0.0/1); Energy is 0.11 from your target      |
+|      |                      |          | (+0.89/1)                                              |
++------+----------------------+----------+--------------------------------------------------------+
+| 3    | Storm Runner         | 1.98/4   | Genre does not match pop (+0.0/2); Mood matches        |
+|      |                      |          | intense (+1.0/1); Energy is 0.02 from your target      |
+|      |                      |          | (+0.98/1)                                              |
++------+----------------------+----------+--------------------------------------------------------+
+| 4    | Voltage Bloom        | 0.97/4   | Genre does not match pop (+0.0/2); Mood does not match |
+|      |                      |          | intense (+0.0/1); Energy is 0.03 from your target      |
+|      |                      |          | (+0.97/1)                                              |
++------+----------------------+----------+--------------------------------------------------------+
+| 5    | Velvet Groove        | 0.85/4   | Genre does not match pop (+0.0/2); Mood does not match |
+|      |                      |          | intense (+0.0/1); Energy is 0.15 from your target      |
+|      |                      |          | (+0.85/1)                                              |
++------+----------------------+----------+--------------------------------------------------------+
 ```
 
 ## System Evaluation: Adversarial Profiles

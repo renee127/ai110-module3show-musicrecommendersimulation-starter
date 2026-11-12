@@ -8,6 +8,7 @@ from src.recommender import (
     recommend_songs,
     score_song,
 )
+from src.main import print_recommendation_table
 
 
 def test_load_songs_converts_csv_values_to_numbers(tmp_path):
@@ -75,6 +76,27 @@ def test_score_song_ignores_surrounding_whitespace_in_genre_and_mood():
     assert score == 4.0
     assert any("Genre matches" in reason for reason in reasons)
     assert any("Mood matches" in reason for reason in reasons)
+
+
+def test_recommendation_table_includes_score_and_reasons(capsys):
+    print_recommendation_table(
+        [
+            (
+                {"title": "Test Song"},
+                3.5,
+                "Genre matches pop (+2.0/2); Mood matches happy (+1.0/1)",
+            )
+        ]
+    )
+
+    output = capsys.readouterr().out
+    assert "| Rank | Song                 | Score    | Reasons" in output
+    assert "Test Song" in output
+    assert "3.50/4" in output
+    assert "Genre matches pop (+2.0/2)" in output
+    assert "Mood matches" in output
+    assert "happy" in output
+    assert "(+1.0/1)" in output
 
 
 def test_recommend_songs_ranks_using_genre_and_mood_scores():

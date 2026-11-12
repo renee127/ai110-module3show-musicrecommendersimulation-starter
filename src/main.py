@@ -4,7 +4,44 @@ Command line runner for the Music Recommender Simulation.
 This file stress-tests the recommender with several taste profiles.
 """
 
+from textwrap import wrap
+
 from src.recommender import load_songs, recommend_songs
+
+
+def print_recommendation_table(
+    recommendations: list[tuple[dict, float, str]],
+    max_score: int = 4,
+) -> None:
+    """Print ranked songs, scores, and wrapped scoring reasons in an ASCII table."""
+    widths = (4, 20, 8, 54)
+    headers = ("Rank", "Song", "Score", "Reasons")
+
+    def border() -> str:
+        return "+" + "+".join("-" * (width + 2) for width in widths) + "+"
+
+    def row(cells: tuple[str, ...]) -> str:
+        return "| " + " | ".join(
+            cell.ljust(width) for cell, width in zip(cells, widths)
+        ) + " |"
+
+    print(border())
+    print(row(headers))
+    print(border())
+    for rank, (song, score, explanation) in enumerate(recommendations, start=1):
+        reason_lines = wrap(explanation, width=widths[3]) or [""]
+        for line_index, reason_line in enumerate(reason_lines):
+            print(
+                row(
+                    (
+                        str(rank) if line_index == 0 else "",
+                        song["title"] if line_index == 0 else "",
+                        f"{score:.2f}/{max_score}" if line_index == 0 else "",
+                        reason_line,
+                    )
+                )
+            )
+        print(border())
 
 
 def main() -> None:
@@ -74,9 +111,7 @@ def main() -> None:
             f"({user_prefs['favorite_genre']} / {user_prefs['favorite_mood']}, "
             f"target energy: {user_prefs['target_energy']:.2f}):\n"
         )
-        for rank, (song, score, explanation) in enumerate(recommendations, start=1):
-            print(f"{rank}. {song['title']} - Score: {score:.2f}/4")
-            print(f"   Reasons: {explanation}\n")
+        print_recommendation_table(recommendations)
 
     experiment_profile_name, experiment_profile = profiles[0]
     experiment_recommendations = recommend_songs(
@@ -89,12 +124,7 @@ def main() -> None:
         f"\nWeight-shift experiment for {experiment_profile_name} "
         "(genre 2 -> 1, energy 1 -> 2, mood stays 1):\n"
     )
-    for rank, (song, score, explanation) in enumerate(
-        experiment_recommendations,
-        start=1,
-    ):
-        print(f"{rank}. {song['title']} - Score: {score:.2f}/4")
-        print(f"   Reasons: {explanation}\n")
+    print_recommendation_table(experiment_recommendations, max_score=5)
 
 
 if __name__ == "__main__":
