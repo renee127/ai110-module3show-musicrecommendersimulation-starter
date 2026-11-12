@@ -89,8 +89,3 @@ recommendation, even though it does not know what a listener actually enjoys.
 Next, I would gather listener ratings, test whether the rankings match those
 ratings, and explore partial credit for related genres and moods.
 
-**TODO — Add your own details or revise the draft above:**
-- What was your biggest learning moment while building and testing this project?
-- How did AI tools help, and what did you need to verify yourself?
-- What surprised you about a simple algorithm producing recommendations?
-- What would you try next if you continued the project?
