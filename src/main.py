@@ -6,7 +6,10 @@ This file stress-tests the recommender with several taste profiles.
 
 from textwrap import wrap
 
-from src.recommender import load_songs, recommend_songs
+try:
+    from .recommender import load_songs, recommend_songs
+except ImportError:  # pragma: no cover - supports running as a script
+    from recommender import load_songs, recommend_songs
 
 ADVANCED_PREFERENCE_KEYS = (
     "target_popularity",
