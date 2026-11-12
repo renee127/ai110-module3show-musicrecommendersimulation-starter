@@ -32,9 +32,13 @@ The recommendation plan is:
    contributions as an explanation.
 4. Sort songs by score, highest first, and return the first `k` recommendations.
 
-Genre and mood matches are exact and case-insensitive; related labels do not
-currently receive partial credit. The system uses only these three features,
-so its results depend on the catalog labels and energy values.
+Genre and mood matches are exact after trimming surrounding whitespace and
+ignoring case; related labels do not currently receive partial credit. The
+system uses only these three features, so its results depend on the catalog
+labels and energy values.
+The object-oriented `Recommender` methods use the same default scoring rules
+and explanations as the functional CLI helpers; the optional weight-shift
+experiment is available through the functional helpers.
 
 **Potential bias:** Genre can contribute twice as much as mood or a perfect
 energy match, so the ranking may favor a genre match over a song that better
@@ -147,7 +151,7 @@ Top recommendations for Deep Intense Rock (rock / intense, target energy: 0.91):
 ## System Evaluation: Adversarial Profiles
 
 These AI-suggested cases probe conflicting preferences, an energy target
-outside the expected 0.0–1.0 range, and case-insensitive label matching.
+outside the expected 0.0–1.0 range, and case-/whitespace-insensitive label matching.
 
 **Conflicting profile: metal / melancholic / high energy**
 

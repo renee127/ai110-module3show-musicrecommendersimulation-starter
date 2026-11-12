@@ -58,6 +58,25 @@ def test_score_song_uses_genre_mood_and_energy_weights():
     assert any("Mood matches" in reason for reason in reasons)
 
 
+def test_score_song_ignores_surrounding_whitespace_in_genre_and_mood():
+    profile = {
+        "favorite_genre": "  PoP ",
+        "favorite_mood": " HAPPY  ",
+        "target_energy": 0.8,
+    }
+    song = {
+        "genre": "pop  ",
+        "mood": " happy",
+        "energy": 0.8,
+    }
+
+    score, reasons = score_song(profile, song)
+
+    assert score == 4.0
+    assert any("Genre matches" in reason for reason in reasons)
+    assert any("Mood matches" in reason for reason in reasons)
+
+
 def test_recommend_songs_ranks_using_genre_and_mood_scores():
     profile = {
         "favorite_genre": "pop",
@@ -313,3 +332,53 @@ def test_explain_recommendation_returns_non_empty_string():
     explanation = rec.explain_recommendation(user, song)
     assert isinstance(explanation, str)
     assert explanation.strip() != ""
+
+
+def test_class_and_functional_apis_use_the_same_scoring_rules():
+    rec = make_small_recommender()
+    user = UserProfile(
+        favorite_genre="pop",
+        favorite_mood="happy",
+        target_energy=0.8,
+        likes_acoustic=False,
+    )
+    user_prefs = {
+        "favorite_genre": user.favorite_genre,
+        "favorite_mood": user.favorite_mood,
+        "target_energy": user.target_energy,
+    }
+    songs_as_dicts = [
+        {
+            "title": song.title,
+            "genre": song.genre,
+            "mood": song.mood,
+            "energy": song.energy,
+        }
+        for song in rec.songs
+    ]
+
+    class_results = rec.recommend(user, k=2)
+    functional_results = recommend_songs(user_prefs, songs_as_dicts, k=2)
+
+    assert [song.title for song in class_results] == [
+        song["title"] for song, _, _ in functional_results
+    ]
+    for class_song, (functional_song, _, explanation) in zip(
+        class_results,
+        functional_results,
+    ):
+        assert class_song.title == functional_song["title"]
+        assert rec.explain_recommendation(user, class_song) == explanation
+
+
+def test_class_recommender_rejects_negative_k():
+    rec = make_small_recommender()
+    user = UserProfile(
+        favorite_genre="pop",
+        favorite_mood="happy",
+        target_energy=0.8,
+        likes_acoustic=False,
+    )
+
+    with pytest.raises(ValueError, match="k must be non-negative"):
+        rec.recommend(user, k=-1)

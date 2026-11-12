@@ -1,7 +1,7 @@
 import csv
 import math
 from typing import List, Dict, Tuple, Optional
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 @dataclass
 class Song:
@@ -40,12 +40,29 @@ class Recommender:
         self.songs = songs
 
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
-        # TODO: Implement recommendation logic
-        return self.songs[:k]
+        """Return songs ranked with the functional scorer's default weights."""
+        if k < 0:
+            raise ValueError("k must be non-negative")
+
+        user_prefs = asdict(user)
+        _validate_energy(user_prefs["target_energy"], "target_energy")
+        scored_songs = [
+            (song, score_song(user_prefs, asdict(song))[0])
+            for song in self.songs
+        ]
+        return [
+            song
+            for song, _ in sorted(
+                scored_songs,
+                key=lambda recommendation: recommendation[1],
+                reverse=True,
+            )[:k]
+        ]
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
-        # TODO: Implement explanation logic
-        return "Explanation placeholder"
+        """Explain a song's score using the functional scorer's default weights."""
+        _, reasons = score_song(asdict(user), asdict(song))
+        return "; ".join(reasons)
 
 def load_songs(csv_path: str) -> List[Dict]:
     """Load songs from a CSV file and convert their numeric fields."""
@@ -85,9 +102,13 @@ def score_song(
     _validate_energy(target_energy, "target_energy")
 
     genre_match = (
-        song["genre"].casefold() == user_prefs["favorite_genre"].casefold()
+        song["genre"].strip().casefold()
+        == user_prefs["favorite_genre"].strip().casefold()
     )
-    mood_match = song["mood"].casefold() == user_prefs["favorite_mood"].casefold()
+    mood_match = (
+        song["mood"].strip().casefold()
+        == user_prefs["favorite_mood"].strip().casefold()
+    )
     energy_similarity = max(
         0.0, 1.0 - abs(song_energy - target_energy)
     )
